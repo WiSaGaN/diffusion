@@ -49,6 +49,18 @@ public:
     /// \param shm_name specifies the name of the shared memory object to read. The object must be already created by writer when this function is called.
     /// \return returns a pointer to a newed reader object.
     static Reader * create_shared_memory_reader(std::string const & shm_name);
+    /// \brief Create a new network writer.
+    /// \details Create a pointer to a newed network writer.
+    ///          User should delete it after it is done.
+    ///          Or use smart pointers to take care of it.
+    static Writer * create_network_writer(std::string const & listening_ip, std::uint16_t listening_port);
+    /// \brief Create a new network reader.
+    /// \details Create a pointer to a newed network writer.
+    ///          User should delete it after it is done.
+    ///          Or use smart pointers to take care of it.
+    /// \param writer_host is corresponding writer's internet host address.
+    /// \param writer_port is corresponding writer's listening port.
+    static Reader * create_network_reader(std::string const & writer_host, std::uint16_t writer_port);
 };
 } // namespace diffusion
 #endif // DIFFUSION_FACTORY_HPP_
