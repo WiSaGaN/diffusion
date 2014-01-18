@@ -47,7 +47,7 @@ bool ShmReader::can_read() {
     }
 }
 ByteBuffer ShmReader::read() {
-    if (!this->has_next()) {
+    if (!this->can_read()) {
         throw ErrorNoData();
     }
     auto body_size_buffer = this->cyclic_read(sizeof(Size)); // avoid unaligned access.
