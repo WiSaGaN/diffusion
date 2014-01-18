@@ -7,8 +7,8 @@ extern const Size kShmHeaderLength; // Search it in shm_reader.cpp
 class ShmReader : public Reader {
 public:
     ShmReader(std::string const & shm_name);
-    virtual bool has_next();
-    virtual ByteBuffer read_next();
+    virtual bool can_read();
+    virtual ByteBuffer read();
 private:
     boost::interprocess::shared_memory_object shm_object_;
     boost::interprocess::mapped_region shm_region_;
@@ -34,7 +34,7 @@ ShmReader::ShmReader(std::string const & shm_name)
     shm_body_size_ = shm_region_.get_size() - kShmHeaderLength;
     this->update_writer_shm_body_offset();
 }
-bool ShmReader::has_next() {
+bool ShmReader::can_read() {
     if (reader_shm_body_offset_ != static_cast<Offset>(writer_shm_body_offset_)) {
         return true;
     } else {
@@ -46,7 +46,7 @@ bool ShmReader::has_next() {
         }
     }
 }
-ByteBuffer ShmReader::read_next() {
+ByteBuffer ShmReader::read() {
     if (!this->has_next()) {
         throw ErrorNoData();
     }

@@ -16,14 +16,14 @@ class Reader {
 public:
     /// \brief Check if there is available data.
     /// \return true if it has, false if it is empty.
-    virtual bool has_next() = 0;
+    virtual bool can_read() = 0;
     /// \brief Get next RawData if it is available.
     /// \details If there is available data, return available data as RawData.
     ///          If there is no available data, throw ErrorNoData exception.
     ///          To avoid throwing exception, one should always call has_next() before get_next().
     ///          Will throw ErrorDataCorruption if data is corrupted.
     /// \return the available RawData in the medium.
-    virtual ByteBuffer read_next() = 0;
+    virtual ByteBuffer read() = 0;
     /// \brief Virtual destructor for run-time polymorphism.
     virtual ~Reader() {}
 };
