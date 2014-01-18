@@ -49,6 +49,18 @@ public:
     /// \param shm_name specifies the name of the shared memory object to read. The object must be already created by writer when this function is called.
     /// \return returns a pointer to a newed reader object.
     static Reader * create_shared_memory_reader(std::string const & shm_name);
+    /// \brief Create a new file writer.
+    /// \details Create a pointer to a newed file writer.
+    ///          User should delete it after it is done.
+    ///          Or use smart pointers to take care of it.
+    /// \param file_name is the diffusion file that is about to write.
+    static Writer * create_file_writer(std::string const & file_name);
+    /// \brief Create a new file reader.
+    /// \details Create a pointer to a newed file writer.
+    ///          User should delete it after it is done.
+    ///          Or use smart pointers to take care of it.
+    /// \param file_name is the diffusion file that is about to read.
+    static Reader * create_file_reader(std::string const & file_name);
 };
 } // namespace diffusion
 #endif // DIFFUSION_FACTORY_HPP_
