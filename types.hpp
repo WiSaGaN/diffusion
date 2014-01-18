@@ -8,10 +8,11 @@
 namespace diffusion {
 typedef std::int32_t Size;
 typedef std::int32_t Offset;
-inline ByteBuffer serialize(ByteBuffer const & data) {
-    ByteBuffer memory_object(sizeof(Size) + data.size());
+template<typename POD>
+ByteBuffer prefix(ByteBuffer const & data, POD const & object) {
+    ByteBuffer memory_object(sizeof(object) + data.size());
     auto write_pointer = memory_object.data();
-    write_pointer += write_aligned_object(write_pointer, data.size());
+    write_pointer += write_aligned_object(write_pointer, object);
     std::memcpy(write_pointer, data.const_data(), data.size());
     return memory_object;
 }
