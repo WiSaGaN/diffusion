@@ -5,8 +5,8 @@ namespace diffusion {
 class NetReader : public Reader {
 public:
     NetReader(std::string const & listening_ip_address, std::uint16_t listening_port);
-    virtual bool has_next();
-    virtual ByteBuffer get_next();
+    virtual bool can_read();
+    virtual ByteBuffer read();
 private:
 };
 } // namespace diffusion
