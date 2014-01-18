@@ -25,6 +25,7 @@ public:
         data_ = temp;
         size_ = lvalue_buffer.size();
         std::memcpy(data_, lvalue_buffer.const_data(), lvalue_buffer.size());
+        return *this;
     }
     ByteBuffer & operator=(ByteBuffer && rvalue_buffer) {
         delete[] data_;
