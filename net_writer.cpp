@@ -1,6 +1,6 @@
 // Created on November 19, 2013 by Lu, Wangshan.
-#include <boost/asio.hpp>
 #include <diffusion/factory.hpp>
+#include <boost/asio.hpp>
 namespace diffusion {
 class NetWriter : public Writer {
 public:
