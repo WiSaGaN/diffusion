@@ -57,7 +57,7 @@ ShmWriter::~ShmWriter() {
     boost::interprocess::shared_memory_object::remove(shm_name_.c_str());
 }
 void ShmWriter::write(ByteBuffer const & data) {
-    ByteBuffer data_serialization = serialize(data);
+    ByteBuffer data_serialization = prefix(data, data.size());
     if (DEBUG)
         std::cerr << "serialized\n";
     this->cyclic_write(data_serialization);
