@@ -4,8 +4,8 @@ namespace diffusion {
 class FileReader : public Reader {
 public:
     FileReader(std::string const & file_name);
-    virtual bool has_next();
-    virtual ByteBuffer get_next();
+    virtual bool can_read();
+    virtual ByteBuffer read();
 private:
 };
 } // namespace diffusion
