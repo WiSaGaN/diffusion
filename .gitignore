@@ -1,5 +1,7 @@
 #Build files:
 build/
+#Doxygen generated files:
+doc/
 #KDevelop backup files:
 *~
 #KDevelop project files:
