@@ -1,11 +1,14 @@
-#Build files:
+# Build files:
 build/
-#Doxygen generated files:
+
+# Doxygen generated files:
 doc/
 *.bak
-#KDevelop backup files:
+
+# KDevelop backup files:
 *~
-#KDevelop project files:
+
+# KDevelop project files:
 kdev4/
 *.kdev4
 
