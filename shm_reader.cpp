@@ -1,6 +1,7 @@
 // Created on October 26, 2013 by Lu, Wangshan.
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/detail/atomic.hpp>
 #include <diffusion/factory.hpp>
 namespace diffusion {
 extern const Size kShmHeaderLength; // Search it in shm_reader.cpp
@@ -47,7 +48,7 @@ bool ShmReader::can_read() {
     }
 }
 ByteBuffer ShmReader::read() {
-    if (!this->has_next()) {
+    if (!this->can_read()) {
         throw ErrorNoData();
     }
     auto body_size_buffer = this->cyclic_read(sizeof(Size)); // avoid unaligned access.

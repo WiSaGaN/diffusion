@@ -1,2 +1,8 @@
+#Build files:
 build/
+#KDevelop backup files:
+*~
+#KDevelop project files:
+kdev4/
+*.kdev4
 
