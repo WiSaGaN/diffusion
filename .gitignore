@@ -2,6 +2,7 @@
 build/
 #Doxygen generated files:
 doc/
+*.bak
 #KDevelop backup files:
 *~
 #KDevelop project files:
