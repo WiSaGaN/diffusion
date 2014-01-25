@@ -53,14 +53,14 @@ public:
     /// \details Create a pointer to a newed network writer.
     ///          User should delete it after it is done.
     ///          Or use smart pointers to take care of it.
-    static Writer * create_network_writer(std::string const & listening_ip, std::uint16_t listening_port);
+    static Writer * create_network_writer(std::string const & listening_ip, std::string const & listening_port);
     /// \brief Create a new network reader.
     /// \details Create a pointer to a newed network writer.
     ///          User should delete it after it is done.
     ///          Or use smart pointers to take care of it.
     /// \param writer_host is corresponding writer's internet host address.
     /// \param writer_port is corresponding writer's listening port.
-    static Reader * create_network_reader(std::string const & writer_host, std::uint16_t writer_port);
+    static Reader * create_network_reader(std::string const & writer_host, std::string const & writer_port);
     /// \brief Create a new file writer.
     /// \details Create a pointer to a newed file writer.
     ///          User should delete it after it is done.

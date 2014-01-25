@@ -72,7 +72,7 @@ private:
 };
 class NetReader : public Reader {
 public:
-    NetReader(std::string const & destination_ip_address, std::uint16_t destination_port);
+    NetReader(std::string const & destination_ip_address, std::string destination_port);
     virtual ~NetReader();
     virtual bool can_read();
     virtual ByteBuffer read();
@@ -81,11 +81,14 @@ private:
     std::thread receiver_thread_;
     Tokenizer data_queue_;
 };
-NetReader::NetReader(std::string const & destination_ip_address, std::uint16_t destination_port) {
+Reader * Factory::create_network_reader(std::string const & writer_host, std::string const & writer_port) {
+    return new NetReader(writer_host, writer_port);
+}
+NetReader::NetReader(std::string const & destination_ip_address, std::string destination_port) {
     auto io_service = std::make_shared<boost::asio::io_service>();
     boost::asio::ip::tcp::socket socket(*io_service);
     boost::asio::ip::tcp::resolver resolver(*io_service);
-    boost::asio::connect(socket, resolver.resolve({destination_ip_address, std::to_string(destination_port)}));
+    boost::asio::connect(socket, resolver.resolve({destination_ip_address, destination_port}));
     receiver_ = std::shared_ptr<Receiver>(new Receiver(io_service, std::move(socket), data_queue_));
     receiver_thread_ = std::thread([=](){receiver_->run();});
 }
