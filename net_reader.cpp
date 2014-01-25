@@ -7,46 +7,58 @@
 #include <thread>
 #include <boost/asio.hpp>
 namespace diffusion {
-template<typename Data>
-class SyncQueue {
+class Tokenizer {
 public:
-    void push(Data const & data) {
-        std::lock_guard<std::mutex> lock(queue_mutex_);
-        queue_.push_back(data);
+    void push(std::string const & raw_data) {
+        unprocessed_data_ += raw_data;
+        auto message_length = *reinterpret_cast<Size *>(&unprocessed_data_[0]);
+        if (message_length < 0)
+            throw ErrorDataCorruption();
+        if (static_cast<std::size_t>(message_length) > unprocessed_data_.size()) {
+        } else {
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            processed_data_queue_.push_back(ByteBuffer(&unprocessed_data_[0], message_length));
+            unprocessed_data_.erase(0, message_length);
+        }
     }
-    bool pop(Data & data) {
+    bool pop(ByteBuffer & data) {
         std::lock_guard<std::mutex> lock(queue_mutex_);
-        if (queue_.empty()) {
+        if (processed_data_queue_.empty()) {
             return false;
         } else {
-            data = queue_.front();
-            queue_.pop_front();
+            data = processed_data_queue_.front();
+            processed_data_queue_.pop_front();
             return true;
         }
     }
     bool is_empty() const {
         std::lock_guard<std::mutex> lock(queue_mutex_);
-        return queue_.empty();
+        return processed_data_queue_.empty();
     }
 private:
+    std::string unprocessed_data_;
     mutable std::mutex queue_mutex_;
-    std::deque<Data> queue_;
+    std::deque<ByteBuffer> processed_data_queue_;
 };
 class Receiver {
 public:
-    Receiver(boost::asio::ip::tcp::socket && input_socket, SyncQueue<ByteBuffer> & message_queue)
+    Receiver(std::shared_ptr<boost::asio::io_service> input_io_service, boost::asio::ip::tcp::socket && input_socket, Tokenizer & data_queue)
         : die_(false),
+          io_service_(input_io_service),
           socket_(std::move(input_socket)),
-          message_queue_(message_queue) {
+          data_queue_(data_queue) {
+        socket_.shutdown(boost::asio::socket_base::shutdown_send);
     }
     ~Receiver() {
         boost::system::error_code ec;
         socket_.shutdown(boost::asio::socket_base::shutdown_both, ec);
         socket_.close();
     }
-    void operator()() {
+    void run() {
+        char buffer[65536];
         while (!die_) {
-            // read, or wait for 500ms.
+            auto length = socket_.receive(boost::asio::buffer(buffer));
+            data_queue_.push(std::string(buffer, length));
         }
     }
     void shut_down() const {
@@ -54,38 +66,41 @@ public:
     }
 private:
     mutable std::atomic<bool> die_;
+    std::shared_ptr<boost::asio::io_service> io_service_;
     boost::asio::ip::tcp::socket socket_;
-    SyncQueue<ByteBuffer> & message_queue_;
+    Tokenizer & data_queue_;
 };
 class NetReader : public Reader {
 public:
-    NetReader(std::string const & listening_ip_address, std::uint16_t listening_port);
+    NetReader(std::string const & destination_ip_address, std::uint16_t destination_port);
     virtual ~NetReader();
     virtual bool can_read();
     virtual ByteBuffer read();
 private:
-    std::unique_ptr<Receiver> receiver_;
+    std::shared_ptr<Receiver> receiver_;
     std::thread receiver_thread_;
-    SyncQueue<ByteBuffer> message_queue_;
+    Tokenizer data_queue_;
 };
-NetReader::NetReader(std::string const & listening_ip_address, std::uint16_t listening_port) {
-    // Connect.
-    // Create socket.
-    // Create Receiver.
-    // Create thread.
+NetReader::NetReader(std::string const & destination_ip_address, std::uint16_t destination_port) {
+    auto io_service = std::make_shared<boost::asio::io_service>();
+    boost::asio::ip::tcp::socket socket(*io_service);
+    boost::asio::ip::tcp::resolver resolver(*io_service);
+    boost::asio::connect(socket, resolver.resolve({destination_ip_address, std::to_string(destination_port)}));
+    receiver_ = std::shared_ptr<Receiver>(new Receiver(io_service, std::move(socket), data_queue_));
+    receiver_thread_ = std::thread([=](){receiver_->run();});
 }
 NetReader::~NetReader() {
     receiver_->shut_down();
     receiver_thread_.join();
 }
 bool NetReader::can_read() {
-    return !message_queue_.is_empty();
+    return !data_queue_.is_empty();
 }
 ByteBuffer NetReader::read() {
     if (this->can_read()) {
         // Assuming single thread.
         ByteBuffer data(0);
-        message_queue_.pop(data);
+        data_queue_.pop(data);
         return data;
     } else {
         throw ErrorNoData();

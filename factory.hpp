@@ -73,7 +73,6 @@ public:
     ///          Or use smart pointers to take care of it.
     /// \param file_name is the diffusion file that is about to read.
     static Reader * create_file_reader(std::string const & file_name);
->>>>>>> develop
 };
 } // namespace diffusion
 #endif // DIFFUSION_FACTORY_HPP_

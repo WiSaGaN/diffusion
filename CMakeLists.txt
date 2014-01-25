@@ -10,6 +10,4 @@ endif(UNIX)
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
-add_library(libdiffusion shm_writer.cpp shm_reader.cpp file_writer.cpp file_reader.cpp)
-
-	
+add_library(libdiffusion shm_writer.cpp shm_reader.cpp file_writer.cpp file_reader.cpp net_writer.cpp net_reader.cpp)
