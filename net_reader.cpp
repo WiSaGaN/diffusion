@@ -42,9 +42,8 @@ private:
 };
 class Receiver {
 public:
-    Receiver(std::shared_ptr<boost::asio::io_service> input_io_service, boost::asio::ip::tcp::socket && input_socket, Tokenizer & data_queue)
+    Receiver(boost::asio::ip::tcp::socket && input_socket, Tokenizer & data_queue)
         : die_(false),
-          io_service_(input_io_service),
           socket_(std::move(input_socket)),
           data_queue_(data_queue) {
         socket_.shutdown(boost::asio::socket_base::shutdown_send);
@@ -66,7 +65,6 @@ public:
     }
 private:
     mutable std::atomic<bool> die_;
-    std::shared_ptr<boost::asio::io_service> io_service_;
     boost::asio::ip::tcp::socket socket_;
     Tokenizer & data_queue_;
 };
@@ -85,11 +83,11 @@ Reader * Factory::create_network_reader(std::string const & writer_host, std::st
     return new NetReader(writer_host, writer_port);
 }
 NetReader::NetReader(std::string const & destination_ip_address, std::string destination_port) {
-    auto io_service = std::make_shared<boost::asio::io_service>();
-    boost::asio::ip::tcp::socket socket(*io_service);
-    boost::asio::ip::tcp::resolver resolver(*io_service);
+    boost::asio::io_service io_service;;
+    boost::asio::ip::tcp::socket socket(io_service);
+    boost::asio::ip::tcp::resolver resolver(io_service);
     boost::asio::connect(socket, resolver.resolve({destination_ip_address, destination_port}));
-    receiver_ = std::shared_ptr<Receiver>(new Receiver(io_service, std::move(socket), data_queue_));
+    receiver_ = std::shared_ptr<Receiver>(new Receiver(std::move(socket), data_queue_));
     receiver_thread_ = std::thread([=](){receiver_->run();});
 }
 NetReader::~NetReader() {
