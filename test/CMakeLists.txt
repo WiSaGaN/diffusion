@@ -3,4 +3,4 @@ if (GTEST_FOUND)
 endif (GTEST_FOUND)
 
 add_executable(t_net_reader t_net_reader.cpp)
-target_link_libraries(t_net_reader libdiffusion ${Boost_LIBRARIES} pthread)
+target_link_libraries(t_net_reader diffusion ${Boost_LIBRARIES} pthread)
