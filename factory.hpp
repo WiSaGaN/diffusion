@@ -53,7 +53,7 @@ public:
     /// \details Create a pointer to a newed network writer.
     ///          User should delete it after it is done.
     ///          Or use smart pointers to take care of it.
-    static Writer * create_network_writer(std::string const & listening_ip, std::string const & listening_port);
+    static Writer * create_network_writer(std::uint16_t listening_port);
     /// \brief Create a new network reader.
     /// \details Create a pointer to a newed network writer.
     ///          User should delete it after it is done.

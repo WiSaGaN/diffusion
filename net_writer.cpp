@@ -16,7 +16,7 @@ private:
 };
 class NetWriter : public Writer {
 public:
-    NetWriter(std::string const & listening_ip_address, std::uint16_t listening_port);
+    NetWriter(std::uint16_t listening_port);
     virtual ~NetWriter();
     virtual void write(ByteBuffer const & data);
 private:
@@ -24,7 +24,10 @@ private:
     Server server_;
     std::thread server_thread_;
 };
-NetWriter::NetWriter(std::string const & listening_ip_address, std::uint16_t listening_port)
+Writer * Factory::create_network_writer(std::uint16_t listening_port) {
+    return new NetWriter(listening_port);
+}
+NetWriter::NetWriter(std::uint16_t listening_port)
   : server_(io_service_) {
 
 }
