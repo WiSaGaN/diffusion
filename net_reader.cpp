@@ -79,7 +79,7 @@ private:
     std::thread receiver_thread_;
     Tokenizer data_queue_;
 };
-Reader * Factory::create_network_reader(std::string const & writer_host, std::string const & writer_port) {
+Reader * create_network_reader(std::string const & writer_host, std::string const & writer_port) {
     return new NetReader(writer_host, writer_port);
 }
 NetReader::NetReader(std::string const & destination_ip_address, std::string destination_port) {

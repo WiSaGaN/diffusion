@@ -24,7 +24,7 @@ private:
     Server server_;
     std::thread server_thread_;
 };
-Writer * Factory::create_network_writer(std::uint16_t listening_port) {
+Writer * create_network_writer(std::uint16_t listening_port) {
     return new NetWriter(listening_port);
 }
 NetWriter::NetWriter(std::uint16_t listening_port)

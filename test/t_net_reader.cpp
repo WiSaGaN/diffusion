@@ -8,7 +8,7 @@ int main(int argc, char * argv[]) {
         std::cerr << "Usage: " << argv[0] << " writer_ip_address writer_port" << std::endl;
         return 0;
     }
-    auto net_reader = std::shared_ptr<diffusion::Reader>(diffusion::Factory::create_network_reader(argv[1], argv[2]));
+    auto net_reader = std::shared_ptr<diffusion::Reader>(diffusion::create_network_reader(argv[1], argv[2]));
     while (true) {
         if (net_reader->can_read()) {
             auto line = net_reader->read();

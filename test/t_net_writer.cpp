@@ -11,6 +11,6 @@ int main(int argc, char * argv[]) {
     }
     std::ifstream input_text_file(argv[2]);
     std::uint16_t listening_port = std::stoi(argv[1]);
-    auto net_writer = std::shared_ptr<diffusion::Writer>(diffusion::Factory::create_network_writer(listening_port));
+    auto net_writer = std::shared_ptr<diffusion::Writer>(diffusion::create_network_writer(listening_port));
     return 0;
 }
