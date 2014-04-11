@@ -3,14 +3,17 @@
 #define DIFFUSION_BYTE_WRITER_READER_HPP_
 #include <cstring>
 #include <string>
+#include <type_traits>
 namespace diffusion {
 template<typename POD>
 std::size_t write_aligned_object(char * byte_pointer, POD const & object) {
+    static_assert(std::is_pod<POD>::value, "typename POD must be a POD type");
     *reinterpret_cast<POD *>(byte_pointer) = object;
     return sizeof(object);
 }
 template<typename POD>
 POD read_aligned_object(char const * byte_pointer) {
+    static_assert(std::is_pod<POD>::value, "typename POD must be a POD type");
     return *reinterpret_cast<POD const *>(byte_pointer);
 }
 class ByteWriter {
@@ -22,6 +25,7 @@ public:
     /// \detail This function assumes the write can be unaligned, so it uses memcpy to avoid the alignment issue.
     template<typename POD>
     void write_object(POD const & object) {
+        static_assert(std::is_pod<POD>::value, "typename POD must be a POD type");
         std::memcpy(byte_pointer_, &object, sizeof(object)); // Avoid alignment and aliasing issue.
         byte_pointer_ += sizeof(object);
     }
@@ -41,6 +45,7 @@ public:
     /// \detail This function assumes the read can be unaligned, so it uses memcpy to avoid the alignment issue.
     template<typename POD>
     POD read_object() {
+        static_assert(std::is_pod<POD>::value, "typename POD must be a POD type");
         POD object;
         std::memcpy(&object, byte_pointer_, sizeof(object)); // Avoid alignment and aliasing issue.
         byte_pointer_ += sizeof(object);
