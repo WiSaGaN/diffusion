@@ -12,11 +12,10 @@ int main(int argc, char * argv[]) {
     std::ifstream input_text_file(argv[2]);
     std::uint16_t listening_port = std::stoi(argv[1]);
     auto net_writer = std::shared_ptr<diffusion::Writer>(diffusion::create_network_writer(listening_port));
-    while (true) {
-        std::string current_line;
+    std::string current_line;
+    while (input_text_file) {
         std::getline(input_text_file, current_line);
-        if (!input_text_file)
-            input_text_file.open(argv[2]);
+        std::cout << ":" << current_line << ":" << std::endl;
         net_writer->write(diffusion::ByteBuffer(current_line));
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
