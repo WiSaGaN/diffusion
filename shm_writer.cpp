@@ -38,7 +38,7 @@ private:
     void cyclic_write(ByteBuffer const & serialization);
     void commit();
 };
-Writer * Factory::create_shared_memory_writer(std::string const & shm_name, Size shm_size) {
+Writer * create_shared_memory_writer(std::string const & shm_name, Size shm_size) {
     return new ShmWriter(shm_name, shm_size);
 }
 ShmWriter::ShmWriter(std::string const & shm_name, Size shm_size)

@@ -23,7 +23,7 @@ private:
     ByteBuffer cyclic_read(Size size);
     void update_writer_shm_body_offset();
 };
-Reader * Factory::create_shared_memory_reader(std::string const & shm_name) {
+Reader * create_shared_memory_reader(std::string const & shm_name) {
     return new ShmReader(shm_name);
 }
 ShmReader::ShmReader(std::string const & shm_name)
