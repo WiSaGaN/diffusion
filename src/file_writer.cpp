@@ -20,7 +20,7 @@ FileWriter::FileWriter(std::string const & file_name)
 FileWriter::~FileWriter() {
 }
 void FileWriter::write(ByteBuffer const & data) {
-    ByteBuffer data_serialization = prefix(data, data.size());
+    ByteBuffer data_serialization = prefix(data, static_cast<Size>(data.size()));
     file_.write(data_serialization.const_data(), data_serialization.size());
 }
 void FileWriter::write_file_header() {

@@ -63,7 +63,7 @@ NetWriter::~NetWriter() {
     server_thread_.join();
 }
 void NetWriter::write(ByteBuffer const & data) {
-    auto serialization = prefix(data, data.size());
+    auto serialization = prefix(data, static_cast<Size>(data.size()));
     server_.post(std::move(serialization));
 }
 } // namespace diffusion
