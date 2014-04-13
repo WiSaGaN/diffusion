@@ -6,12 +6,14 @@
 #include <memory>
 #include <thread>
 #include <boost/asio.hpp>
+// TODO: Move exception from worker thread to thread calling can_read.
 namespace diffusion {
 class Tokenizer {
 public:
     void push(std::string const & raw_data) {
         unprocessed_data_ += raw_data;
         auto message_length = *reinterpret_cast<Size *>(&unprocessed_data_[0]);
+        unprocessed_data_.erase(0, sizeof(Size));
         if (message_length < 0)
             throw ErrorDataCorruption();
         if (static_cast<std::size_t>(message_length) > unprocessed_data_.size()) {
@@ -56,8 +58,15 @@ public:
     void run() {
         char buffer[65536];
         while (!die_) {
-            auto length = socket_.receive(boost::asio::buffer(buffer));
-            data_queue_.push(std::string(buffer, length));
+            std::size_t length = 0;
+            try {
+                length = socket_.receive(boost::asio::buffer(buffer));
+            } catch (std::exception const & e) {
+                throw ErrorDisconnection();
+            }
+            if (length > 0) {
+                data_queue_.push(std::string(buffer, length));
+            }
         }
     }
     void shut_down() const {
