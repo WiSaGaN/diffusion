@@ -26,6 +26,11 @@ public:
     ErrorDataCorruption() : std::runtime_error("diffusion: Data is corrupted.") {
     }
 };
+class ErrorDisconnection : public std::runtime_error {
+public:
+    ErrorDisconnection() : std::runtime_error("diffusion: Disconnected.") {
+    }
+};
 } // namespace diffusion
 
 #endif // DIFFUSION_TYPES_HPP_
