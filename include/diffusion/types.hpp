@@ -20,6 +20,7 @@ class ErrorNoWriter : public std::runtime_error {
 public:
     ErrorNoWriter() : std::runtime_error("Diffusion: Can't find writer.") {
     }
+};
 class ErrorNoData : public std::runtime_error {
 public:
     ErrorNoData() : std::runtime_error("Diffusion: There is no data to get.") {
