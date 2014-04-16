@@ -8,10 +8,10 @@ int main(int argc, char * argv[]) {
         std::cerr << "Usage: " << argv[0] << " shm_name" << std::endl;
         return 0;
     }
-    auto net_reader = std::shared_ptr<diffusion::Reader>(diffusion::create_shared_memory_reader(argv[1]));
+    auto shm_reader = std::shared_ptr<diffusion::Reader>(diffusion::create_shared_memory_reader(argv[1]));
     while (true) {
-        if (net_reader->can_read()) {
-            auto line = net_reader->read();
+        if (shm_reader->can_read()) {
+            auto line = shm_reader->read();
             std::cout.write(line.const_data(), line.size());
             std::cout << std::endl;
         } else {
