@@ -95,7 +95,11 @@ NetReader::NetReader(std::string const & destination_ip_address, std::string des
     boost::asio::io_service io_service;;
     boost::asio::ip::tcp::socket socket(io_service);
     boost::asio::ip::tcp::resolver resolver(io_service);
-    boost::asio::connect(socket, resolver.resolve({destination_ip_address, destination_port}));
+    try {
+        boost::asio::connect(socket, resolver.resolve({destination_ip_address, destination_port}));
+    } catch (std::exception const & e) {
+        throw ErrorNoWriter();
+    }
     receiver_ = std::shared_ptr<Receiver>(new Receiver(std::move(socket), data_queue_));
     receiver_thread_ = std::thread([=](){receiver_->run();});
 }
