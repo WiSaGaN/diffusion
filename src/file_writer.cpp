@@ -12,6 +12,9 @@ private:
     std::ofstream file_;
     void write_file_header();
 };
+Writer * create_file_writer(std::string const & file_name) {
+    return new FileWriter(file_name);
+}
 FileWriter::FileWriter(std::string const & file_name)
     : file_(file_name) {
     // TODO: Add file checking.

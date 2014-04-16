@@ -15,6 +15,9 @@ private:
     std::deque<ByteBuffer> data_queue_;
     bool is_file_valid();
 };
+Reader * create_file_reader(std::string const & file_name) {
+    return new FileReader(file_name);
+}
 FileReader::FileReader(std::string const & file_name)
     : file_(file_name) {
     // TODO: Add file checking.
