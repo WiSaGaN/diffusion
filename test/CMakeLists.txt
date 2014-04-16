@@ -2,6 +2,12 @@ if (GTEST_FOUND)
 	include_directories(${GTEST_INCLUDE_DIRS})
 endif (GTEST_FOUND)
 
+add_executable(t_shm_writer t_shm_writer.cpp)
+target_link_libraries(t_shm_writer diffusion ${Boost_LIBRARIES} pthread rt)
+
+add_executable(t_shm_reader t_shm_reader.cpp)
+target_link_libraries(t_shm_reader diffusion ${Boost_LIBRARIES} pthread rt)
+
 add_executable(t_net_writer t_net_writer.cpp)
 target_link_libraries(t_net_writer diffusion ${Boost_LIBRARIES} pthread)
 
