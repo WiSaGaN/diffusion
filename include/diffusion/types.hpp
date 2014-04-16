@@ -18,17 +18,17 @@ ByteBuffer prefix(ByteBuffer const & data, POD const & object) {
 }
 class ErrorNoData : public std::runtime_error {
 public:
-    ErrorNoData() : std::runtime_error("diffusion: There is no data to get.") {
+    ErrorNoData() : std::runtime_error("Diffusion: There is no data to get.") {
     }
 };
 class ErrorDataCorruption : public std::runtime_error {
 public:
-    ErrorDataCorruption() : std::runtime_error("diffusion: Data is corrupted.") {
+    ErrorDataCorruption() : std::runtime_error("Diffusion: Data is corrupted.") {
     }
 };
 class ErrorDisconnection : public std::runtime_error {
 public:
-    ErrorDisconnection() : std::runtime_error("diffusion: Disconnected.") {
+    ErrorDisconnection() : std::runtime_error("Diffusion: Disconnected.") {
     }
 };
 } // namespace diffusion
