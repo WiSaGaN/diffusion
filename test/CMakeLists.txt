@@ -1,5 +1,7 @@
 if (GTEST_FOUND)
 	include_directories(${GTEST_INCLUDE_DIRS})
+	add_executable(ut_file ut_file.cpp)
+	target_link_libraries(ut_file diffusion ${Boost_LIBRARIES} ${GTEST_LIBRARIES} pthread)
 endif (GTEST_FOUND)
 
 add_executable(t_shm_writer t_shm_writer.cpp)
