@@ -2,6 +2,7 @@
 #include <diffusion/factory.hpp>
 #include <fstream>
 #include <deque>
+#include <iostream> // Debug
 namespace diffusion {
 extern const std::string kFileHeader;
 class FileReader : public Reader {
@@ -34,23 +35,18 @@ bool FileReader::can_read() {
         auto file_position_before_reading = file_.tellg();
         ByteBuffer message_header(sizeof(Size));
         if (!file_.read(message_header.data(), message_header.size())) {
-            if (file_.eof()) {
-                file_.seekg(file_position_before_reading);
+            if (file_.eof() && file_.gcount() == 0) {
                 return false;
-            } else if (file_.fail()) {
+            } else {
+                std::cout << "Aho, header error, now position " << file_.tellg() << ", just now " << file_position_before_reading << std::endl;
                 throw ErrorDataCorruption();
             }
         } else {
             auto message_size = *reinterpret_cast<Size const *>(message_header.const_data());
             ByteBuffer message(message_size);
             if (!file_.read(message.data(), message.size())) {
-                if (file_.eof()) {
-                    file_.seekg(file_position_before_reading);
-                    return false;
-                } else if (file_.fail()) {
-                    throw ErrorDataCorruption();
-                }
-                return false;
+                std::cout << "Aho, body error, now position " << file_.tellg() << ", just now " << file_position_before_reading << std::endl;
+                throw ErrorDataCorruption();
             } else {
                 data_queue_.push_back(message);
                 return true;
