@@ -18,11 +18,14 @@ private:
 Reader * create_file_reader(std::string const & file_name) {
     return new FileReader(file_name);
 }
-FileReader::FileReader(std::string const & file_name)
-    : file_(file_name) {
-    // TODO: Add file checking.
-    if (this->is_file_valid()) {
-    } else {
+FileReader::FileReader(std::string const & file_name) {
+    try {
+        file_.open(file_name);
+    } catch (std::exception const & e) {
+        throw ErrorFileOpening();
+    }
+    if (!this->is_file_valid()) {
+        throw ErrorDataCorruption();
     }
 }
 FileReader::~FileReader() {}
@@ -31,15 +34,22 @@ bool FileReader::can_read() {
         auto file_position_before_reading = file_.tellg();
         ByteBuffer message_header(sizeof(Size));
         if (!file_.read(message_header.data(), message_header.size())) {
-            // TODO: badbit throw read_fail.
-            file_.seekg(file_position_before_reading);
-            return false;
+            if (file_.eof()) {
+                file_.seekg(file_position_before_reading);
+                return false;
+            } else if (file_.fail()) {
+                throw ErrorDataCorruption();
+            }
         } else {
             auto message_size = *reinterpret_cast<Size const *>(message_header.const_data());
             ByteBuffer message(message_size);
             if (!file_.read(message.data(), message.size())) {
-                // TODO: badbit throw read_fail.
-                file_.seekg(file_position_before_reading);
+                if (file_.eof()) {
+                    file_.seekg(file_position_before_reading);
+                    return false;
+                } else if (file_.fail()) {
+                    throw ErrorDataCorruption();
+                }
                 return false;
             } else {
                 data_queue_.push_back(message);
@@ -61,12 +71,11 @@ ByteBuffer FileReader::read() {
 }
 bool FileReader::is_file_valid() {
     auto file_header_length = kFileHeader.length();
-    std::string first_four_bytes(file_header_length, '0');
-    if (!file_.read(&first_four_bytes[0], file_header_length)) {
-        // TODO: badbit throw read_fail.
+    std::string actual_file_header(file_header_length, '0');
+    if (!file_.read(&actual_file_header[0], file_header_length)) {
         return false;
     }
-    if (first_four_bytes == kFileHeader) {
+    if (actual_file_header == kFileHeader) {
         return true;
     } else {
         return false;

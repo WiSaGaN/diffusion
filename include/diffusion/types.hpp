@@ -36,6 +36,11 @@ public:
     ErrorDisconnection() : std::runtime_error("Diffusion: Disconnected.") {
     }
 };
+class ErrorFileOpening : public std::runtime_error {
+public:
+    ErrorFileOpening() : std::runtime_error("Diffusion: Can't open the file.") {
+    }
+};
 } // namespace diffusion
 
 #endif // DIFFUSION_TYPES_HPP_

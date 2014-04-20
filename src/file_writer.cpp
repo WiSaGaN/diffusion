@@ -15,9 +15,12 @@ private:
 Writer * create_file_writer(std::string const & file_name) {
     return new FileWriter(file_name);
 }
-FileWriter::FileWriter(std::string const & file_name)
-    : file_(file_name) {
-    // TODO: Add file checking.
+FileWriter::FileWriter(std::string const & file_name) {
+    try {
+        file_.open(file_name);
+    } catch (std::exception const & e) {
+        throw ErrorFileOpening();
+    }
     this->write_file_header();
 }
 FileWriter::~FileWriter() {
