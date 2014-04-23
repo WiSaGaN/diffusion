@@ -12,5 +12,4 @@ include_directories(${Boost_INCLUDE_DIR})
 
 add_library(diffusion src/shm_writer.cpp src/shm_reader.cpp src/file_writer.cpp src/file_reader.cpp src/net_writer.cpp src/net_reader.cpp)
 
-find_package(GTest)
 add_subdirectory(test)

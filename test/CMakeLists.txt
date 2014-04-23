@@ -1,3 +1,4 @@
+find_package(GTest)
 if (GTEST_FOUND)
 	include_directories(${GTEST_INCLUDE_DIRS})
 	add_executable(ut_file ut_file.cpp)
