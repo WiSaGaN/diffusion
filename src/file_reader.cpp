@@ -31,7 +31,6 @@ FileReader::FileReader(std::string const & file_name) {
 FileReader::~FileReader() {}
 bool FileReader::can_read() {
     if (data_queue_.empty()) {
-        auto file_position_before_reading = file_.tellg();
         ByteBuffer message_header(sizeof(Size));
         if (!file_.read(message_header.data(), message_header.size())) {
             if (file_.eof() && file_.gcount() == 0) {
