@@ -10,6 +10,7 @@
 /// That means if user specifies a length of 1000000 bytes in the writer's constructor, the payload region for writing data is 999996 bytes.
 /// And if RawData contains a length of 28 bytes rawdata, it will take 4 + 28 = 32 bytes in the share memory payload region.
 #include <memory>
+#include <boost/version.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/detail/atomic.hpp>
@@ -88,7 +89,11 @@ void ShmWriter::cyclic_write(ByteBuffer const & serialization) {
 void ShmWriter::commit() {
     // TODO: May need to add memory barrier.
     static auto const shm_offset_position = reinterpret_cast<boost::uint32_t *>(shm_header_position_);
+#if BOOST_VERSION < 104800
+    boost::interprocess::detail::atomic_write32(shm_offset_position, static_cast<boost::uint32_t>(writer_shm_body_offset_));
+#else
     boost::interprocess::ipcdetail::atomic_write32(shm_offset_position, static_cast<boost::uint32_t>(writer_shm_body_offset_));
+#endif
 }
 } // namespace diffusion
 

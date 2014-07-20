@@ -1,4 +1,5 @@
 // Created on October 26, 2013 by Lu, Wangshan.
+#include <boost/version.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/detail/atomic.hpp>
@@ -75,7 +76,11 @@ ByteBuffer ShmReader::cyclic_read(Size size) {
 void ShmReader::update_writer_shm_body_offset() {
     // TODO: May need to add memory barrier.
     volatile static auto writer_shm_body_offset_position = reinterpret_cast<boost::uint32_t *>(shm_header_position_);
+#if BOOST_VERSION < 104800
+    writer_shm_body_offset_ = boost::interprocess::detail::atomic_read32(writer_shm_body_offset_position);
+#else
     writer_shm_body_offset_ = boost::interprocess::ipcdetail::atomic_read32(writer_shm_body_offset_position);
+#endif
 }
 } // namespace diffusion
 
