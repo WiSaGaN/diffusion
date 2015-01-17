@@ -1,5 +1,20 @@
 language: cpp
+
 compiler:
   - gcc
   - clang
-script: mkdir _build && cd _build && cmake .. && make
+
+install:
+  - sudo apt-get install libboost-dev
+  - sudo apt-get install libgtest-dev
+  - cd /usr/src/gtest
+  - sudo cmake .
+  - sudo make
+  - sudo mv libg* /usr/lib/
+  - cd -
+
+script:
+  - mkdir _build
+  - cd _build
+  - cmake ..
+  - make
