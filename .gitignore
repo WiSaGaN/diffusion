@@ -1,13 +1,13 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# Build files:
+build/
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
+# Doxygen generated files:
+doc/
+*.bak
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+# KDevelop backup files:
+*~
+
+# KDevelop project files:
+kdev4/
+*.kdev4
