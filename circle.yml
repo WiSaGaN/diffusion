@@ -3,3 +3,7 @@ dependencies:
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - sudo apt-get update; sudo apt-get install gcc-4.8
 
+test:
+  override:
+    - mkdir _build && cd _build && cmake .. && make test
+
