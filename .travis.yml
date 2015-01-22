@@ -5,6 +5,7 @@ compiler:
   - clang
 
 before_install:
+  - locate libstdc++.so
   - find /usr/lib -type d -print
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo add-apt-repository -y ppa:boost-latest/ppa
