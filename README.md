@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/WiSaGaN/diffusion.svg?branch=master)](https://travis-ci.org/WiSaGaN/diffusion)
+[![Circle CI](https://circleci.com/gh/WiSaGaN/diffusion.svg?style=svg)](https://circleci.com/gh/WiSaGaN/diffusion)
 Diffusion
 =========
 **Diffusion** is a `C++` library for efficient message-based data distribution from one writer process to multiple reader processes. Currently Diffusion has three forms: to/from file, through shared memory, through network. Design of diffusion focuses on simplicity and efficiency.
