@@ -18,10 +18,10 @@ install:
   - sudo apt-get install libboost1.55-all-dev
   # GTest
   - sudo apt-get -qq install libgtest-dev
-  - cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/lib/ ; cd -
+  - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/lib/ ; cd -"
   # GMock
   - sudo apt-get -qq install google-mock
-  - cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/lib/ ; cd -
+  - "cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/lib/ ; cd -"
 
 script:
   - mkdir _build
