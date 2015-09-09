@@ -15,10 +15,8 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/detail/atomic.hpp>
 #include <diffusion/factory.hpp>
-#define DEBUG 1
-#if DEBUG
+#define DEBUG 0
 #include <iostream>
-#endif // DEBUG
 namespace diffusion {
 extern const Size kShmHeaderLength = 8; // Also used by shm_reader.cpp
 class ShmWriter : public Writer {

@@ -25,3 +25,9 @@ target_link_libraries(t_file_writer diffusion ${Boost_LIBRARIES} pthread)
 
 add_executable(t_file_reader t_file_reader.cpp)
 target_link_libraries(t_file_reader diffusion ${Boost_LIBRARIES} pthread)
+
+add_executable(pt_shm_throughput pt_shm_throughput.cpp)
+target_link_libraries(pt_shm_throughput diffusion ${Boost_LIBRARIES} pthread rt)
+
+add_executable(pt_shm_latency pt_shm_latency.cpp)
+target_link_libraries(pt_shm_latency diffusion ${Boost_LIBRARIES} pthread rt)
