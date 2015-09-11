@@ -28,21 +28,24 @@ void parent() {
     Message message;
     message.is_last_message = false;
     ::clock_gettime(CLOCK_REALTIME, &message.first_message_send_time);
+    diffusion::ByteBuffer data(reinterpret_cast<char const *>(&message), sizeof(message));
     for (int i = 1; i < times; ++i) {
-        shm_writer->write(diffusion::ByteBuffer(reinterpret_cast<char const *>(&message), sizeof(message)));
+        shm_writer->write(data);
     }
-    message.is_last_message = true;
-    shm_writer->write(diffusion::ByteBuffer(reinterpret_cast<char const *>(&message), sizeof(message)));
+    auto message_pointer = reinterpret_cast<Message *>(data.data());
+    message_pointer->is_last_message = true;
+    shm_writer->write(data);
 }
 
 void child() {
     auto shm_reader = std::shared_ptr<diffusion::Reader>(diffusion::create_shared_memory_reader(shm_name));
     ::timespec first_message_send_time;
     ::timespec last_message_recv_time;
+    std::vector<char> buffer(sizeof(Message));
     while (true) {
         if (shm_reader->can_read()) {
-            auto line = shm_reader->read();
-            auto message = reinterpret_cast<Message const *>(line.const_data());
+            shm_reader->read(buffer);
+            auto message = reinterpret_cast<Message const *>(buffer.data());
             if (message->is_last_message) {
                 first_message_send_time = message->first_message_send_time;
                 break;

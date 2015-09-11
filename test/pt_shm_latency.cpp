@@ -33,43 +33,47 @@ void parent() {
     ::timespec first_message_send_time;
     ::timespec last_message_recv_time;
     ::clock_gettime(CLOCK_REALTIME, &first_message_send_time);
+    auto data = diffusion::to_vector_char(reinterpret_cast<char const *>(&message), sizeof(message));
+    std::vector<char> recv(sizeof(Message));
     for (int i = 1; i < times; ++i) {
-        out_writer->write(diffusion::ByteBuffer(reinterpret_cast<char const *>(&message), sizeof(message)));
+        out_writer->write(data);
         while (true) {
             if (in_reader->can_read()) {
-                auto line = in_reader->read();
-                message = *reinterpret_cast<Message *>(line.data());
-                ++message.num_passes;
+                in_reader->read(data);
+                auto message_pointer = reinterpret_cast<Message *>(data.data());
+                ++message_pointer->num_passes;
                 break;
             }
         }
     }
-    message.is_last_message = true;
-    out_writer->write(diffusion::ByteBuffer(reinterpret_cast<char const *>(&message), sizeof(message)));
+    auto message_pointer = reinterpret_cast<Message *>(data.data());
+    message_pointer->is_last_message = true;
+    out_writer->write(data);
     while (true) {
         if (in_reader->can_read()) {
-            auto line = in_reader->read();
-            message = *reinterpret_cast<Message *>(line.data());
-            ++message.num_passes;
+            in_reader->read(data);
+            auto message_pointer = reinterpret_cast<Message *>(data.data());
+            ++message_pointer->num_passes;
             break;
         }
     }
     ::clock_gettime(CLOCK_REALTIME, &last_message_recv_time);
     std::cout << "First message send time: "; print(first_message_send_time); std::cout << std::endl;
     std::cout << "Last message recv time : "; print(last_message_recv_time); std::cout << std::endl;
-    std::cout << "Number of message passes = " << message.num_passes << std::endl;
+    std::cout << "Number of message passes = " << message_pointer->num_passes << std::endl;
 }
 
 void child() {
     auto out_reader = std::shared_ptr<diffusion::Reader>(diffusion::create_shared_memory_reader(shm_out_name));
     auto in_writer = std::shared_ptr<diffusion::Writer>(diffusion::create_shared_memory_writer(shm_in_name, shm_size));
+    std::vector<char> data(sizeof(Message));
     while (true) {
         if (out_reader->can_read()) {
-            auto line = out_reader->read();
-            auto message = reinterpret_cast<Message *>(line.data());
-            ++message->num_passes;
-            bool is_last_message = message->is_last_message;
-            in_writer->write(line);
+            out_reader->read(data);
+            auto message_pointer = reinterpret_cast<Message *>(data.data());
+            ++message_pointer->num_passes;
+            bool is_last_message = message_pointer->is_last_message;
+            in_writer->write(data);
             if (is_last_message) {
                 break;
             }

@@ -3,6 +3,7 @@
 #define DIFFUSION_TYPES_HPP_
 #include <cstdint>
 #include <stdexcept>
+#include <vector>
 #include <diffusion/byte_buffer.hpp>
 #include <diffusion/byte_writer_reader.hpp>
 namespace diffusion {
@@ -15,6 +16,19 @@ ByteBuffer prefix(ByteBuffer const & data, POD const & object) {
     write_pointer += write_aligned_object(write_pointer, object);
     std::memcpy(write_pointer, data.const_data(), data.size());
     return memory_object;
+}
+template<typename POD>
+std::vector<char> prefix(std::vector<char> const & data, POD const & object) {
+    std::vector<char> memory_object(sizeof(object) + data.size());
+    auto write_pointer = memory_object.data();
+    write_pointer += write_aligned_object(write_pointer, object);
+    std::memcpy(write_pointer, data.data(), data.size());
+    return memory_object;
+}
+inline std::vector<char> to_vector_char(char const *data, std::size_t size) {
+    std::vector<char> result(size);
+    std::copy(data, data + size, result.data());
+    return result;
 }
 class ErrorNoWriter : public std::runtime_error {
 public:
