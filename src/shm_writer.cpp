@@ -9,11 +9,10 @@
 /// The writer will wrap to the shared memroy region's payload's beginning when it encounters the end of the region.
 /// That means if user specifies a length of 1000000 bytes in the writer's constructor, the payload region for writing data is 999996 bytes.
 /// And if RawData contains a length of 28 bytes rawdata, it will take 4 + 28 = 32 bytes in the share memory payload region.
+#include <atomic>
 #include <memory>
-#include <boost/version.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/detail/atomic.hpp>
 #include <diffusion/factory.hpp>
 #define DEBUG 0
 #include <iostream>
@@ -34,7 +33,7 @@ private:
     char * shm_body_position_;
     Size shm_body_size_;
     // variable.
-    boost::uint32_t writer_shm_body_offset_;
+    std::uint32_t writer_shm_body_offset_;
     void cyclic_write(char const *data, std::size_t size);
     void commit();
 };
@@ -99,13 +98,8 @@ void ShmWriter::cyclic_write(char const *data, std::size_t size) {
     }
 }
 void ShmWriter::commit() {
-    // TODO: May need to add memory barrier.
-    static auto const shm_offset_position = reinterpret_cast<boost::uint32_t *>(shm_header_position_);
-#if BOOST_VERSION < 104800
-    boost::interprocess::detail::atomic_write32(shm_offset_position, static_cast<boost::uint32_t>(writer_shm_body_offset_));
-#else
-    boost::interprocess::ipcdetail::atomic_write32(shm_offset_position, static_cast<boost::uint32_t>(writer_shm_body_offset_));
-#endif
+    auto shm_offset_position = reinterpret_cast<std::atomic<std::uint32_t> *>(shm_header_position_);
+    std::atomic_store_explicit(shm_offset_position, static_cast<std::uint32_t>(writer_shm_body_offset_), std::memory_order_release);
 }
 } // namespace diffusion
 
