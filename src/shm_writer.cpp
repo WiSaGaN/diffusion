@@ -35,8 +35,7 @@ private:
     Size shm_body_size_;
     // variable.
     boost::uint32_t writer_shm_body_offset_;
-    void cyclic_write(ByteBuffer const & serialization);
-    void cyclic_write(std::vector<char> const & serialization);
+    void cyclic_write(char const *data, std::size_t size);
     void commit();
 };
 Writer * create_shared_memory_writer(std::string const & shm_name, Size shm_size) {
@@ -58,10 +57,11 @@ ShmWriter::~ShmWriter() {
     boost::interprocess::shared_memory_object::remove(shm_name_.c_str());
 }
 void ShmWriter::write(ByteBuffer const & data) {
-    ByteBuffer data_serialization = prefix(data, static_cast<Size>(data.size()));
     if (DEBUG)
         std::cerr << "serialized\n";
-    this->cyclic_write(data_serialization);
+    auto size_prefix = static_cast<Size>(data.size());
+    this->cyclic_write(reinterpret_cast<char const *>(&size_prefix), sizeof(size_prefix));
+    this->cyclic_write(data.const_data(), data.size());
     if (DEBUG)
         std::cerr << "wrote\n";
     this->commit();
@@ -69,40 +69,23 @@ void ShmWriter::write(ByteBuffer const & data) {
         std::cerr << "committed to " << writer_shm_body_offset_ << "\n";
 }
 void ShmWriter::write(std::vector<char> const &data) {
-    std::vector<char> data_serialization = prefix(data, static_cast<Size>(data.size()));
     if (DEBUG)
         std::cerr << "serialized\n";
-    this->cyclic_write(data_serialization);
+    auto size_prefix = static_cast<Size>(data.size());
+    this->cyclic_write(reinterpret_cast<char const *>(&size_prefix), sizeof(size_prefix));
+    this->cyclic_write(data.data(), data.size());
     if (DEBUG)
         std::cerr << "wrote\n";
     this->commit();
     if (DEBUG)
         std::cerr << "committed to " << writer_shm_body_offset_ << "\n";
 }
-void ShmWriter::cyclic_write(ByteBuffer const & serialization) {
-    auto bytes_left = static_cast<Size>(serialization.size());
+void ShmWriter::cyclic_write(char const *data, std::size_t size) {
+    auto bytes_left = static_cast<Size>(size);
     while (bytes_left > 0) {
         if (DEBUG)
             std::cout << "Bytes left: " << bytes_left << ", ";
-        auto start_position_unwritten_bytes = serialization.const_data() + serialization.size() - bytes_left;
-        auto space_left = shm_body_size_ - static_cast<Size>(writer_shm_body_offset_);
-        auto bytes_can_be_written_without_wrap = (bytes_left > space_left) ? space_left : bytes_left;
-        if (DEBUG)
-            std::cout << "Can write " << bytes_can_be_written_without_wrap << " bytes." << std::endl;
-        std::memcpy(shm_body_position_ + static_cast<Offset>(writer_shm_body_offset_), start_position_unwritten_bytes, bytes_can_be_written_without_wrap);
-        writer_shm_body_offset_ += bytes_can_be_written_without_wrap;
-        bytes_left -= bytes_can_be_written_without_wrap;
-        if (static_cast<Size>(writer_shm_body_offset_) == shm_body_size_) {
-            writer_shm_body_offset_ = 0;
-        }
-    }
-}
-void ShmWriter::cyclic_write(std::vector<char> const &serialization) {
-    auto bytes_left = static_cast<Size>(serialization.size());
-    while (bytes_left > 0) {
-        if (DEBUG)
-            std::cout << "Bytes left: " << bytes_left << ", ";
-        auto start_position_unwritten_bytes = serialization.data() + serialization.size() - bytes_left;
+        auto start_position_unwritten_bytes = data + size - bytes_left;
         auto space_left = shm_body_size_ - static_cast<Size>(writer_shm_body_offset_);
         auto bytes_can_be_written_without_wrap = (bytes_left > space_left) ? space_left : bytes_left;
         if (DEBUG)
