@@ -42,11 +42,7 @@ bool ShmReader::can_read() {
         return true;
     } else {
         this->update_writer_shm_body_offset();
-        if (reader_shm_body_offset_ != static_cast<Offset>(writer_shm_body_offset_)) {
-            return true;
-        } else {
-            return false;
-        }
+        return reader_shm_body_offset_ != static_cast<Offset>(writer_shm_body_offset_);
     }
 }
 ByteBuffer ShmReader::read() {

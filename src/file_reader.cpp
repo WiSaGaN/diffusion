@@ -67,10 +67,6 @@ bool FileReader::is_file_valid() {
     if (!file_.read(&actual_file_header[0], file_header_length)) {
         return false;
     }
-    if (actual_file_header == kFileHeader) {
-        return true;
-    } else {
-        return false;
-    }
+    return actual_file_header == kFileHeader;
 }
 } // namespace diffusion
