@@ -23,17 +23,6 @@ public:
             unprocessed_data_.erase(0, message_length);
         }
     }
-    bool pop(ByteBuffer & data) {
-        std::lock_guard<std::mutex> lock(queue_mutex_);
-        if (processed_data_queue_.empty()) {
-            return false;
-        } else {
-            auto vector_data = processed_data_queue_.front();
-            data = ByteBuffer(vector_data.data(), vector_data.size());
-            processed_data_queue_.pop_front();
-            return true;
-        }
-    }
     bool pop(std::vector<char> &data) {
         std::lock_guard<std::mutex> lock(queue_mutex_);
         if (processed_data_queue_.empty()) {
@@ -93,7 +82,7 @@ public:
     NetReader(std::string const & destination_ip_address, std::string destination_port);
     virtual ~NetReader();
     virtual bool can_read();
-    virtual ByteBuffer read();
+    virtual std::vector<char> read();
     virtual void read(std::vector<char> &buffer);
 private:
     std::shared_ptr<Receiver> receiver_;
@@ -122,10 +111,10 @@ NetReader::~NetReader() {
 bool NetReader::can_read() {
     return !data_queue_.is_empty();
 }
-ByteBuffer NetReader::read() {
+std::vector<char> NetReader::read() {
     if (this->can_read()) {
         // Assuming single thread.
-        ByteBuffer data(0);
+        std::vector<char> data(0);
         data_queue_.pop(data);
         return data;
     } else {

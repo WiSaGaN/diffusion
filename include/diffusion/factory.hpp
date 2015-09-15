@@ -26,8 +26,7 @@ public:
     ///          If there is no available data, throw ErrorNoData exception.
     ///          To avoid throwing exception, one should always call can_read() before read().
     /// \return the available message in the medium.
-    virtual ByteBuffer read() = 0;
-//    virtual std::vector<char> read() {}
+    virtual std::vector<char> read() = 0;
     virtual void read(std::vector<char> &buffer) = 0;
     /// \brief Virtual destructor for run-time polymorphism.
     virtual ~Reader() {}

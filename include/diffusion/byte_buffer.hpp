@@ -61,5 +61,13 @@ private:
 inline ByteBuffer to_byte_buffer(std::string const & data) {
     return ByteBuffer(data.data(), data.size());
 }
+template<typename POD>
+ByteBuffer prefix(ByteBuffer const & data, POD const & object) {
+    ByteBuffer memory_object(sizeof(object) + data.size());
+    auto write_pointer = memory_object.data();
+    write_pointer += write_aligned_object(write_pointer, object);
+    std::memcpy(write_pointer, data.const_data(), data.size());
+    return memory_object;
+}
 } // namespace diffusion
 #endif // DIFFUSION_BYTE_BUFFER_HPP_

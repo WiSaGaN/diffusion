@@ -9,7 +9,7 @@ class ShmReader : public Reader {
 public:
     ShmReader(std::string const & shm_name);
     virtual bool can_read();
-    virtual ByteBuffer read();
+    virtual std::vector<char> read();
     virtual void read(std::vector<char> &buffer);
 private:
     boost::interprocess::shared_memory_object shm_object_;
@@ -21,7 +21,7 @@ private:
     // variable.
     std::uint32_t writer_shm_body_offset_;
     Offset reader_shm_body_offset_;
-    ByteBuffer cyclic_read(Size size);
+    std::vector<char> cyclic_read(Size size);
     void cyclic_read(std::vector<char> &buffer);
     void update_writer_shm_body_offset();
 };
@@ -45,12 +45,12 @@ bool ShmReader::can_read() {
         return reader_shm_body_offset_ != static_cast<Offset>(writer_shm_body_offset_);
     }
 }
-ByteBuffer ShmReader::read() {
+std::vector<char> ShmReader::read() {
     if (!this->can_read()) {
         throw ErrorNoData();
     }
     auto body_size_buffer = this->cyclic_read(sizeof(Size)); // avoid unaligned access.
-    auto body_size = read_aligned_object<Size>(body_size_buffer.const_data());
+    auto body_size = read_aligned_object<Size>(body_size_buffer.data());
     auto body = this->cyclic_read(body_size);
     return body;
 }
@@ -64,8 +64,8 @@ void ShmReader::read(std::vector<char> &buffer) {
     buffer.resize(body_size);
     this->cyclic_read(buffer);
 }
-ByteBuffer ShmReader::cyclic_read(Size size) {
-    ByteBuffer data(size);
+std::vector<char> ShmReader::cyclic_read(Size size) {
+    std::vector<char> data(size);
     auto bytes_left = size;
     while (bytes_left > 0) {
         auto write_pointer = data.data() + size - bytes_left;
