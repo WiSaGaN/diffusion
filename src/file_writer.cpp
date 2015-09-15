@@ -7,7 +7,6 @@ class FileWriter : public Writer {
 public:
     FileWriter(std::string const & file_name);
     virtual ~FileWriter();
-    virtual void write(ByteBuffer const & data);
     virtual void write(std::vector<char> const & data);
     virtual void write(char const *data, std::size_t size);
 private:
@@ -26,9 +25,6 @@ FileWriter::FileWriter(std::string const & file_name) {
     this->write_file_header();
 }
 FileWriter::~FileWriter() {
-}
-void FileWriter::write(ByteBuffer const & data) {
-    this->write(data.const_data(), data.size());
 }
 
 void FileWriter::write(const std::vector< char >& data) {

@@ -14,7 +14,7 @@ int main(int argc, char * argv[]) {
     auto file_writer = std::shared_ptr<diffusion::Writer>(diffusion::create_file_writer(dfsn_file));
     std::string current_line;
     while (std::getline(input_text_file, current_line)) {
-        file_writer->write(diffusion::ByteBuffer(current_line));
+        file_writer->write(diffusion::to_vector_char(current_line.c_str(), current_line.length()));
     }
     return 0;
 }

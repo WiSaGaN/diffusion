@@ -28,7 +28,7 @@ void parent() {
     Message message;
     message.is_last_message = false;
     ::clock_gettime(CLOCK_REALTIME, &message.first_message_send_time);
-    diffusion::ByteBuffer data(reinterpret_cast<char const *>(&message), sizeof(message));
+    auto data = diffusion::to_vector_char(reinterpret_cast<char const *>(&message), sizeof(message));
     for (int i = 1; i < times; ++i) {
         shm_writer->write(data);
     }

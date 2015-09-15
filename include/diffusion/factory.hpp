@@ -7,7 +7,6 @@ namespace diffusion {
 class Writer {
 public:
     /// \brief Write data to medium. Medium can be shared memory, TCP/IP socket, or diffusion file.
-    virtual void write(ByteBuffer const & data) = 0;
     virtual void write(std::vector<char> const &data) = 0;
     virtual void write(char const *data, std::size_t size) = 0;
     /// \brief Virtual destructor for run-time polymorphism.

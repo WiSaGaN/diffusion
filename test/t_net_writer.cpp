@@ -15,7 +15,7 @@ int main(int argc, char * argv[]) {
     std::string current_line;
     while (std::getline(input_text_file, current_line)) {
         std::cout << current_line << std::endl;
-        net_writer->write(diffusion::ByteBuffer(current_line));
+        net_writer->write(diffusion::to_vector_char(current_line.c_str(), current_line.length()));
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     return 0;
