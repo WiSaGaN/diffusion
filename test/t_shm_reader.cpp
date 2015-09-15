@@ -12,7 +12,7 @@ int main(int argc, char * argv[]) {
     while (true) {
         if (shm_reader->can_read()) {
             auto line = shm_reader->read();
-            std::cout.write(line.const_data(), line.size());
+            std::cout.write(line.data(), line.size());
             std::cout << std::endl;
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));

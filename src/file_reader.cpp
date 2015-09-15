@@ -9,7 +9,7 @@ public:
     FileReader(std::string const & file_name);
     virtual ~FileReader();
     virtual bool can_read();
-    virtual ByteBuffer read();
+    virtual std::vector<char> read();
     virtual void read(std::vector<char> &buffer);
 private:
     std::ifstream file_;
@@ -53,9 +53,9 @@ bool FileReader::can_read() {
         return true;
     }
 }
-ByteBuffer FileReader::read() {
+std::vector<char> FileReader::read() {
     if (this->can_read()) {
-        ByteBuffer data(data_queue_.front());
+        std::vector<char> data(data_queue_.front());
         data_queue_.pop_front();
         return data;
     } else {

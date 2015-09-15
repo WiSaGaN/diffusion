@@ -17,9 +17,6 @@ public:
     boost::asio::ip::tcp::socket & socket() {
         return socket_;
     }
-    void write(ByteBuffer const &buffer) {
-        this->write(buffer.const_data(), buffer.size());
-    }
     void write(std::vector<char> const &buffer) {
         this->write(buffer.data(), buffer.size());
     }
@@ -40,12 +37,6 @@ public:
       : io_service_(input_io_service),
         acceptor_(io_service_, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
             this->start_accept();
-    }
-    void post(ByteBuffer && data) {
-        if (!die_) {
-            std::lock_guard<std::mutex> lock(mutex_data_queue_);
-            data_queue_.push(to_vector_char(data.const_data(), data.size()));
-        }
     }
     void post(std::vector<char> && data) {
         if (!die_) {
@@ -107,7 +98,6 @@ class NetWriter : public Writer {
 public:
     NetWriter(std::uint16_t listening_port);
     virtual ~NetWriter();
-    virtual void write(ByteBuffer const &data);
     virtual void write(std::vector<char> const &data);
     virtual void write(char const *data, std::size_t size);
 private:
@@ -124,10 +114,6 @@ NetWriter::NetWriter(std::uint16_t listening_port)
 NetWriter::~NetWriter() {
     server_.shut_down();
     server_thread_.join();
-}
-void NetWriter::write(ByteBuffer const &data) {
-    auto serialization = prefix(data, static_cast<Size>(data.size()));
-    server_.post(std::move(serialization));
 }
 void NetWriter::write(std::vector<char> const &data) {
     auto serialization = prefix(data, static_cast<Size>(data.size()));

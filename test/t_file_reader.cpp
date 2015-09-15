@@ -11,7 +11,7 @@ int main(int argc, char * argv[]) {
     auto file_reader = std::shared_ptr<diffusion::Reader>(diffusion::create_file_reader(argv[1]));
     while (file_reader->can_read()) {
         auto line = file_reader->read();
-        std::cout.write(line.const_data(), line.size());
+        std::cout.write(line.data(), line.size());
         std::cout << std::endl;
     }
     return 0;

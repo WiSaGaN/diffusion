@@ -20,7 +20,6 @@ class ShmWriter : public Writer {
 public:
     ShmWriter(std::string const &shm_name, Size shm_size);
     virtual ~ShmWriter();
-    virtual void write(ByteBuffer const &data);
     virtual void write(std::vector<char> const & data);
     virtual void write(char const *data, std::size_t size);
 private:
@@ -51,9 +50,6 @@ ShmWriter::ShmWriter(std::string const & shm_name, Size shm_size)
 }
 ShmWriter::~ShmWriter() {
     boost::interprocess::shared_memory_object::remove(shm_name_.c_str());
-}
-void ShmWriter::write(ByteBuffer const &data) {
-    this->write(data.const_data(), data.size());
 }
 void ShmWriter::write(std::vector<char> const &data) {
     this->write(data.data(), data.size());
