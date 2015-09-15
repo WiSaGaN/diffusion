@@ -8,8 +8,8 @@ class Writer {
 public:
     /// \brief Write data to medium. Medium can be shared memory, TCP/IP socket, or diffusion file.
     virtual void write(ByteBuffer const & data) = 0;
-    virtual void write(std::vector<char> const &data) {}
-    virtual void write(char const *data, std::size_t size) {}
+    virtual void write(std::vector<char> const &data) = 0;
+    virtual void write(char const *data, std::size_t size) = 0;
     /// \brief Virtual destructor for run-time polymorphism.
     virtual ~Writer() {}
 };
@@ -29,7 +29,7 @@ public:
     /// \return the available message in the medium.
     virtual ByteBuffer read() = 0;
 //    virtual std::vector<char> read() {}
-    virtual void read(std::vector<char> &buffer) {}
+    virtual void read(std::vector<char> &buffer) = 0;
     /// \brief Virtual destructor for run-time polymorphism.
     virtual ~Reader() {}
 };

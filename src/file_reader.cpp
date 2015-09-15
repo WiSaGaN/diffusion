@@ -10,9 +10,10 @@ public:
     virtual ~FileReader();
     virtual bool can_read();
     virtual ByteBuffer read();
+    virtual void read(std::vector<char> &buffer);
 private:
     std::ifstream file_;
-    std::deque<ByteBuffer> data_queue_;
+    std::deque<std::vector<char>> data_queue_;
     bool is_file_valid();
 };
 Reader * create_file_reader(std::string const & file_name) {
@@ -31,7 +32,7 @@ FileReader::FileReader(std::string const & file_name) {
 FileReader::~FileReader() {}
 bool FileReader::can_read() {
     if (data_queue_.empty()) {
-        ByteBuffer message_header(sizeof(Size));
+        std::vector<char> message_header(sizeof(Size));
         if (!file_.read(message_header.data(), message_header.size())) {
             if (file_.eof() && file_.gcount() == 0) {
                 return false;
@@ -39,8 +40,8 @@ bool FileReader::can_read() {
                 throw ErrorDataCorruption();
             }
         } else {
-            auto message_size = *reinterpret_cast<Size const *>(message_header.const_data());
-            ByteBuffer message(message_size);
+            auto message_size = *reinterpret_cast<Size const *>(message_header.data());
+            std::vector<char> message(message_size);
             if (!file_.read(message.data(), message.size())) {
                 throw ErrorDataCorruption();
             } else {
@@ -54,9 +55,17 @@ bool FileReader::can_read() {
 }
 ByteBuffer FileReader::read() {
     if (this->can_read()) {
-        ByteBuffer data = data_queue_.front();
+        ByteBuffer data(data_queue_.front());
         data_queue_.pop_front();
         return data;
+    } else {
+        throw ErrorNoData();
+    }
+}
+void FileReader::read(std::vector<char> &buffer) {
+    if (this->can_read()) {
+        buffer = data_queue_.front();
+        data_queue_.pop_front();
     } else {
         throw ErrorNoData();
     }
