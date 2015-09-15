@@ -4,12 +4,14 @@
 #define DIFFUSION_BYTE_BUFFER_HPP_
 #include <cstring>
 #include <string>
+#include <vector>
 namespace diffusion {
 class ByteBuffer {
 public:
     explicit ByteBuffer(std::size_t size) : data_(new char[size]), size_(size) {}
     ByteBuffer(char const * data, std::size_t size) : data_(new char[size]), size_(size) { std::memcpy(data_, data, size); }
     explicit ByteBuffer(std::string const & data) : data_(new char[data.size()]), size_(data.size()) { std::memcpy(data_, data.data(), data.size()); }
+    explicit ByteBuffer(std::vector<char> const &data) : ByteBuffer(data.data(), data.size()) {}
     ByteBuffer(ByteBuffer const & lvalue_buffer) : data_(new char[lvalue_buffer.size()]), size_(lvalue_buffer.size()) {
         std::memcpy(data_, lvalue_buffer.const_data(), lvalue_buffer.size());
     }
