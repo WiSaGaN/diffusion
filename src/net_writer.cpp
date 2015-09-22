@@ -17,9 +17,12 @@ public:
     boost::asio::ip::tcp::socket & socket() {
         return socket_;
     }
-    void write(ByteBuffer const & buffer) {
+    void write(std::vector<char> const &buffer) {
+        this->write(buffer.data(), buffer.size());
+    }
+    void write(char const *data, std::size_t size) {
         boost::asio::async_write(socket_,
-            boost::asio::buffer(buffer.const_data(), buffer.size()),
+            boost::asio::buffer(data, size),
             boost::bind(&Session::handle_write, this, boost::asio::placeholders::error));
     }
 private:
@@ -35,15 +38,15 @@ public:
         acceptor_(io_service_, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)) {
             this->start_accept();
     }
-    void post(ByteBuffer && data) {
+    void post(std::vector<char> && data) {
         if (!die_) {
             std::lock_guard<std::mutex> lock(mutex_data_queue_);
-            data_queue_.push(std::move(data));
+            data_queue_.push(data);
         }
     }
     void run() {
         while (!die_) {
-            ByteBuffer data(0);
+            std::vector<char> data(0);
             {
                 std::lock_guard<std::mutex> lock(mutex_data_queue_);
                 if (!data_queue_.empty()) {
@@ -69,7 +72,7 @@ public:
 private:
     volatile bool die_;
     std::mutex mutex_data_queue_;
-    std::queue<ByteBuffer> data_queue_;
+    std::queue<std::vector<char>> data_queue_;
     boost::asio::io_service & io_service_;
     boost::asio::ip::tcp::acceptor acceptor_;
     std::set<std::shared_ptr<Session>> sessions_;
@@ -95,7 +98,8 @@ class NetWriter : public Writer {
 public:
     NetWriter(std::uint16_t listening_port);
     virtual ~NetWriter();
-    virtual void write(ByteBuffer const & data);
+    virtual void write(std::vector<char> const &data);
+    virtual void write(char const *data, std::size_t size);
 private:
     boost::asio::io_service io_service_;
     Server server_;
@@ -111,8 +115,15 @@ NetWriter::~NetWriter() {
     server_.shut_down();
     server_thread_.join();
 }
-void NetWriter::write(ByteBuffer const & data) {
+void NetWriter::write(std::vector<char> const &data) {
     auto serialization = prefix(data, static_cast<Size>(data.size()));
     server_.post(std::move(serialization));
 }
+
+void NetWriter::write(char const *data, std::size_t size) {
+    auto data_vector = to_vector_char(data, size);
+    auto serialization = prefix(data_vector, static_cast<Size>(data_vector.size()));
+    server_.post(std::move(serialization));
+}
+
 } // namespace diffusion

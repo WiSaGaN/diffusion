@@ -19,11 +19,11 @@ public:
         if (static_cast<std::size_t>(message_length) > unprocessed_data_.size()) {
         } else {
             std::lock_guard<std::mutex> lock(queue_mutex_);
-            processed_data_queue_.push_back(ByteBuffer(&unprocessed_data_[0], message_length));
+            processed_data_queue_.push_back(to_vector_char(&unprocessed_data_[0], message_length));
             unprocessed_data_.erase(0, message_length);
         }
     }
-    bool pop(ByteBuffer & data) {
+    bool pop(std::vector<char> &data) {
         std::lock_guard<std::mutex> lock(queue_mutex_);
         if (processed_data_queue_.empty()) {
             return false;
@@ -40,7 +40,7 @@ public:
 private:
     std::string unprocessed_data_;
     mutable std::mutex queue_mutex_;
-    std::deque<ByteBuffer> processed_data_queue_;
+    std::deque<std::vector<char>> processed_data_queue_;
 };
 class Receiver {
 public:
@@ -82,7 +82,8 @@ public:
     NetReader(std::string const & destination_ip_address, std::string destination_port);
     virtual ~NetReader();
     virtual bool can_read();
-    virtual ByteBuffer read();
+    virtual std::vector<char> read();
+    virtual void read(std::vector<char> &buffer);
 private:
     std::shared_ptr<Receiver> receiver_;
     std::thread receiver_thread_;
@@ -110,14 +111,25 @@ NetReader::~NetReader() {
 bool NetReader::can_read() {
     return !data_queue_.is_empty();
 }
-ByteBuffer NetReader::read() {
+std::vector<char> NetReader::read() {
     if (this->can_read()) {
         // Assuming single thread.
-        ByteBuffer data(0);
+        std::vector<char> data(0);
         data_queue_.pop(data);
         return data;
     } else {
         throw ErrorNoData();
     }
 }
+void NetReader::read(std::vector<char> &buffer) {
+    if (this->can_read()) {
+        // Assuming single thread.
+        std::vector<char> data(0);
+        data_queue_.pop(data);
+        buffer = data;
+    } else {
+        throw ErrorNoData();
+    }
+}
+
 } // namespace diffusion

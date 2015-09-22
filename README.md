@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.org/WiSaGaN/diffusion.svg?branch=master)](https://travis-ci.org/WiSaGaN/diffusion)
+[![Circle CI](https://circleci.com/gh/WiSaGaN/diffusion.svg?style=svg)](https://circleci.com/gh/WiSaGaN/diffusion)
 Diffusion
 =========
-**Diffusion** is a `C++` library for efficient message-based data distribution from one writer process to multiple reader processes. Currently Diffusion has three forms: to/from file, through shared memory, through network. Design of diffusion focuses on simplicity and efficiency.
+**Diffusion** is a `C++` library for efficient message-based data distribution from one writer process to multiple reader processes. Currently Diffusion supports three transport types: to/from file, through shared memory, through network. Design of diffusion focuses on simplicity and efficiency.
 
 
 Getting Started
@@ -51,6 +53,7 @@ Diffusion file starts with a four-byte header of magic string `DFSN`, followed b
 
 ### Shared Memory
 Shared memory form Diffusion writer can write to a shared memory area, and let multiple shared memory readers read it concurrently without additional synchronization. It has very low latency, and is suitable for efficient data distribution between processes.
+The typical round trip latency for sending and receiving a 500-byte message is around 680 nanoseconds on a laptop with i5-3210M cpu, and the throughput for 500-byte message is around 8 million messages per second. The test program can be found in test directory.
 
 ### Network
 Network form Diffusion writer is a server waiting for network form Diffusion reader to connect. It has higher latency then shared memory, but can be used across network.

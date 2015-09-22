@@ -9,23 +9,19 @@
 /// The writer will wrap to the shared memroy region's payload's beginning when it encounters the end of the region.
 /// That means if user specifies a length of 1000000 bytes in the writer's constructor, the payload region for writing data is 999996 bytes.
 /// And if RawData contains a length of 28 bytes rawdata, it will take 4 + 28 = 32 bytes in the share memory payload region.
+#include <atomic>
 #include <memory>
-#include <boost/version.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/detail/atomic.hpp>
 #include <diffusion/factory.hpp>
-#define DEBUG 1
-#if DEBUG
-#include <iostream>
-#endif // DEBUG
 namespace diffusion {
-extern const Size kShmHeaderLength = 8; // Also used by shm_reader.cpp
+extern constexpr Size kShmHeaderLength = 8; // Also used by shm_reader.cpp
 class ShmWriter : public Writer {
 public:
-    ShmWriter(std::string const & shm_name, Size shm_size);
+    ShmWriter(std::string const &shm_name, Size shm_size);
     virtual ~ShmWriter();
-    virtual void write(ByteBuffer const & data);
+    virtual void write(std::vector<char> const & data);
+    virtual void write(char const *data, std::size_t size);
 private:
     std::string shm_name_;
     boost::interprocess::shared_memory_object shm_object_;
@@ -35,11 +31,11 @@ private:
     char * shm_body_position_;
     Size shm_body_size_;
     // variable.
-    boost::uint32_t writer_shm_body_offset_;
-    void cyclic_write(ByteBuffer const & serialization);
+    std::uint32_t writer_shm_body_offset_;
+    void cyclic_write(char const *data, std::size_t size);
     void commit();
 };
-Writer * create_shared_memory_writer(std::string const & shm_name, Size shm_size) {
+Writer * create_shared_memory_writer(std::string const &shm_name, Size shm_size) {
     return new ShmWriter(shm_name, shm_size);
 }
 ShmWriter::ShmWriter(std::string const & shm_name, Size shm_size)
@@ -51,33 +47,25 @@ ShmWriter::ShmWriter(std::string const & shm_name, Size shm_size)
     shm_header_position_ = reinterpret_cast<char *>(shm_region_->get_address());
     shm_body_position_ = shm_header_position_ + kShmHeaderLength;
     shm_body_size_ = shm_region_->get_size() - kShmHeaderLength;
-    if (DEBUG)
-        std::cerr << "memory starts at " << shm_region_->get_address() << ", length is " << shm_region_->get_size() << std::endl;
 }
 ShmWriter::~ShmWriter() {
     boost::interprocess::shared_memory_object::remove(shm_name_.c_str());
 }
-void ShmWriter::write(ByteBuffer const & data) {
-    ByteBuffer data_serialization = prefix(data, static_cast<Size>(data.size()));
-    if (DEBUG)
-        std::cerr << "serialized\n";
-    this->cyclic_write(data_serialization);
-    if (DEBUG)
-        std::cerr << "wrote\n";
-    this->commit();
-    if (DEBUG)
-        std::cerr << "committed to " << writer_shm_body_offset_ << "\n";
+void ShmWriter::write(std::vector<char> const &data) {
+    this->write(data.data(), data.size());
 }
-void ShmWriter::cyclic_write(ByteBuffer const & serialization) {
-    auto bytes_left = static_cast<Size>(serialization.size());
+void ShmWriter::write(char const *data, std::size_t size) {
+    auto size_prefix = static_cast<Size>(size);
+    this->cyclic_write(reinterpret_cast<char const *>(&size_prefix), sizeof(size_prefix));
+    this->cyclic_write(data, size);
+    this->commit();
+}
+void ShmWriter::cyclic_write(char const *data, std::size_t size) {
+    auto bytes_left = static_cast<Size>(size);
     while (bytes_left > 0) {
-        if (DEBUG)
-            std::cout << "Bytes left: " << bytes_left << ", ";
-        auto start_position_unwritten_bytes = serialization.const_data() + serialization.size() - bytes_left;
+        auto start_position_unwritten_bytes = data + size - bytes_left;
         auto space_left = shm_body_size_ - static_cast<Size>(writer_shm_body_offset_);
         auto bytes_can_be_written_without_wrap = (bytes_left > space_left) ? space_left : bytes_left;
-        if (DEBUG)
-            std::cout << "Can write " << bytes_can_be_written_without_wrap << " bytes." << std::endl;
         std::memcpy(shm_body_position_ + static_cast<Offset>(writer_shm_body_offset_), start_position_unwritten_bytes, bytes_can_be_written_without_wrap);
         writer_shm_body_offset_ += bytes_can_be_written_without_wrap;
         bytes_left -= bytes_can_be_written_without_wrap;
@@ -87,13 +75,8 @@ void ShmWriter::cyclic_write(ByteBuffer const & serialization) {
     }
 }
 void ShmWriter::commit() {
-    // TODO: May need to add memory barrier.
-    static auto const shm_offset_position = reinterpret_cast<boost::uint32_t *>(shm_header_position_);
-#if BOOST_VERSION < 104800
-    boost::interprocess::detail::atomic_write32(shm_offset_position, static_cast<boost::uint32_t>(writer_shm_body_offset_));
-#else
-    boost::interprocess::ipcdetail::atomic_write32(shm_offset_position, static_cast<boost::uint32_t>(writer_shm_body_offset_));
-#endif
+    auto shm_offset_position = reinterpret_cast<std::atomic<std::uint32_t> *>(shm_header_position_);
+    std::atomic_store_explicit(shm_offset_position, static_cast<std::uint32_t>(writer_shm_body_offset_), std::memory_order_release);
 }
 } // namespace diffusion
 

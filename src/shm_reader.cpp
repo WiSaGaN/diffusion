@@ -1,8 +1,7 @@
 // Created on October 26, 2013 by Lu, Wangshan.
-#include <boost/version.hpp>
+#include <atomic>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/detail/atomic.hpp>
 #include <diffusion/factory.hpp>
 namespace diffusion {
 extern const Size kShmHeaderLength; // Search it in shm_reader.cpp
@@ -10,7 +9,8 @@ class ShmReader : public Reader {
 public:
     ShmReader(std::string const & shm_name);
     virtual bool can_read();
-    virtual ByteBuffer read();
+    virtual std::vector<char> read();
+    virtual void read(std::vector<char> &buffer);
 private:
     boost::interprocess::shared_memory_object shm_object_;
     boost::interprocess::mapped_region shm_region_;
@@ -19,9 +19,10 @@ private:
     char * shm_body_position_;
     Size shm_body_size_;
     // variable.
-    boost::uint32_t writer_shm_body_offset_;
+    std::uint32_t writer_shm_body_offset_;
     Offset reader_shm_body_offset_;
-    ByteBuffer cyclic_read(Size size);
+    std::vector<char> cyclic_read(Size size);
+    void cyclic_read(std::vector<char> &buffer);
     void update_writer_shm_body_offset();
 };
 Reader * create_shared_memory_reader(std::string const & shm_name) {
@@ -41,24 +42,30 @@ bool ShmReader::can_read() {
         return true;
     } else {
         this->update_writer_shm_body_offset();
-        if (reader_shm_body_offset_ != static_cast<Offset>(writer_shm_body_offset_)) {
-            return true;
-        } else {
-            return false;
-        }
+        return reader_shm_body_offset_ != static_cast<Offset>(writer_shm_body_offset_);
     }
 }
-ByteBuffer ShmReader::read() {
+std::vector<char> ShmReader::read() {
     if (!this->can_read()) {
         throw ErrorNoData();
     }
     auto body_size_buffer = this->cyclic_read(sizeof(Size)); // avoid unaligned access.
-    auto body_size = read_aligned_object<Size>(body_size_buffer.const_data());
+    auto body_size = read_aligned_object<Size>(body_size_buffer.data());
     auto body = this->cyclic_read(body_size);
     return body;
 }
-ByteBuffer ShmReader::cyclic_read(Size size) {
-    ByteBuffer data(size);
+void ShmReader::read(std::vector<char> &buffer) {
+    if (!this->can_read()) {
+        throw ErrorNoData();
+    }
+    buffer.resize(sizeof(Size));
+    this->cyclic_read(buffer); // avoid unaligned access.
+    auto body_size = read_aligned_object<Size>(buffer.data());
+    buffer.resize(body_size);
+    this->cyclic_read(buffer);
+}
+std::vector<char> ShmReader::cyclic_read(Size size) {
+    std::vector<char> data(size);
     auto bytes_left = size;
     while (bytes_left > 0) {
         auto write_pointer = data.data() + size - bytes_left;
@@ -73,14 +80,23 @@ ByteBuffer ShmReader::cyclic_read(Size size) {
     }
     return data;
 }
+void ShmReader::cyclic_read(std::vector<char> &buffer) {
+    auto bytes_left = static_cast<Size>(buffer.size());
+    while (bytes_left > 0) {
+        auto write_pointer = buffer.data() + buffer.size() - bytes_left;
+        auto space_left = shm_body_size_ - reader_shm_body_offset_;
+        auto bytes_can_be_read_without_wrap = (bytes_left > space_left) ? space_left : bytes_left;
+        std::memcpy(write_pointer, shm_body_position_ + reader_shm_body_offset_, bytes_can_be_read_without_wrap);
+        reader_shm_body_offset_ += bytes_can_be_read_without_wrap;
+        bytes_left -= bytes_can_be_read_without_wrap;
+        if (reader_shm_body_offset_ == shm_body_size_) {
+            reader_shm_body_offset_ = 0;
+        }
+    }
+}
 void ShmReader::update_writer_shm_body_offset() {
-    // TODO: May need to add memory barrier.
-    volatile static auto writer_shm_body_offset_position = reinterpret_cast<boost::uint32_t *>(shm_header_position_);
-#if BOOST_VERSION < 104800
-    writer_shm_body_offset_ = boost::interprocess::detail::atomic_read32(writer_shm_body_offset_position);
-#else
-    writer_shm_body_offset_ = boost::interprocess::ipcdetail::atomic_read32(writer_shm_body_offset_position);
-#endif
+    auto writer_shm_body_offset_position = reinterpret_cast<std::atomic<std::uint32_t> *>(shm_header_position_);
+    writer_shm_body_offset_ = std::atomic_load_explicit(writer_shm_body_offset_position, std::memory_order_acquire);
 }
 } // namespace diffusion
 

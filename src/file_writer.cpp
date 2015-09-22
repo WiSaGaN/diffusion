@@ -7,7 +7,8 @@ class FileWriter : public Writer {
 public:
     FileWriter(std::string const & file_name);
     virtual ~FileWriter();
-    virtual void write(ByteBuffer const & data);
+    virtual void write(std::vector<char> const & data);
+    virtual void write(char const *data, std::size_t size);
 private:
     std::ofstream file_;
     void write_file_header();
@@ -25,10 +26,17 @@ FileWriter::FileWriter(std::string const & file_name) {
 }
 FileWriter::~FileWriter() {
 }
-void FileWriter::write(ByteBuffer const & data) {
-    ByteBuffer data_serialization = prefix(data, static_cast<Size>(data.size()));
-    file_.write(data_serialization.const_data(), data_serialization.size());
+
+void FileWriter::write(const std::vector< char >& data) {
+    this->write(data.data(), data.size());
 }
+
+void FileWriter::write(const char* data, std::size_t size) {
+    auto size_prefix = static_cast<Size>(size);
+    file_.write(reinterpret_cast<char const *>(&size_prefix), sizeof(size_prefix));
+    file_.write(data, size);
+}
+
 void FileWriter::write_file_header() {
     file_.write(kFileHeader.data(), kFileHeader.length());
 }
